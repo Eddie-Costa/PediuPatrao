@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Novo pedido</title>
+</head>
+<body>
+<div th:fragment="content">
+    <div class="d-flex align-items-center gap-3 mb-4">
+        <a th:href="@{/pedidos}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left"></i>
+        </a>
+        <h2 class="fw-bold mb-0"
+            th:text="${pedido.id != null} ? 'Editar pedido' : 'Novo pedido'">Novo pedido</h2>
+    </div>
+
+    <div class="card shadow-sm" style="max-width: 600px;">
+        <div class="card-body p-4">
+            <form th:action="${pedido.id != null} ? @{/pedidos/editar/{id}(id=${pedido.id})} : @{/pedidos/salvar}"
+                  th:object="${pedido}" method="post">
+                <div class="mb-3">
+                    <label for="clienteId" class="form-label">Cliente</label>
+                    <select id="clienteId" class="form-select" th:field="*{clienteId}" required>
+                        <option value="">Carregando clientes...</option>
+                        <option th:each="cliente : ${clientes}"
+                                th:value="${cliente.id}"
+                                th:text="${cliente.nome + ' - ' + cliente.telefone}">
+                        </option>
+                    </select>
+                    <div id="clienteErro" class="text-danger small mt-1" aria-live="polite"></div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Itens do pedido</label>
+                    <div id="itensPedido" class="d-flex flex-column gap-3">
+                        <div class="item-pedido-row row g-2 align-items-end"
+                             th:each="item, itemStat : ${pedido.itens}">
+                            <div class="col-md-7">
+                                <label th:for="${'produto-' + itemStat.index}" class="form-label">Produto</label>
+                                <select class="form-select produto-item"
+                                        th:id="${'produto-' + itemStat.index}"
+                                        th:field="*{itens[__${itemStat.index}__].produtoId}" required>
+                                    <option value="">Selecione um produto</option>
+                                    <option th:each="produto : ${produtos}"
+                                            th:value="${produto.id}"
+                                            th:text="${produto.tipo + ' - ' + produto.nome + ' - R$ ' + #numbers.formatDecimal(produto.preco, 1, 'COMMA', 2, 'POINT')}">
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label th:for="${'quantidade-' + itemStat.index}" class="form-label">Quantidade</label>
+                                <input class="form-control quantidade-item" type="number" min="1"
+                                       th:id="${'quantidade-' + itemStat.index}"
+                                       th:field="*{itens[__${itemStat.index}__].quantidade}" required>
+                            </div>
+                            <div class="col-md-2">
+                                <button type="button" class="btn btn-outline-danger remover-item"
+                                        aria-label="Remover item">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" id="adicionarItem" class="btn btn-outline-primary btn-sm mt-3">
+                        <i class="bi bi-plus-lg me-1"></i>Adicionar produto
+                    </button>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-lg me-1"></i>
+                        <span th:text="${pedido.id != null} ? 'Salvar alterações' : 'Criar pedido'">Criar pedido</span>
+                    </button>
+                    <a th:href="@{/pedidos}" class="btn btn-outline-secondary">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        (() => {
+            const itensPedido = document.getElementById('itensPedido');
+            const adicionarItem = document.getElementById('adicionarItem');
+
+            function atualizarIndices() {
+                const linhas = [...itensPedido.querySelectorAll('.item-pedido-row')];
+                linhas.forEach((linha, indice) => {
+                    const produto = linha.querySelector('.produto-item');
+                    const quantidade = linha.querySelector('.quantidade-item');
+                    produto.name = `itens[${indice}].produtoId`;
+                    produto.id = `produto-${indice}`;
+                    quantidade.name = `itens[${indice}].quantidade`;
+                    quantidade.id = `quantidade-${indice}`;
+                    linha.querySelector('label[for^="produto-"]').htmlFor = produto.id;
+                    linha.querySelector('label[for^="quantidade-"]').htmlFor = quantidade.id;
+                    linha.querySelector('.remover-item').disabled = linhas.length === 1;
+                });
+            }
+
+            adicionarItem.addEventListener('click', () => {
+                const linha = itensPedido.querySelector('.item-pedido-row').cloneNode(true);
+                linha.querySelector('.produto-item').value = '';
+                linha.querySelector('.quantidade-item').value = '1';
+                itensPedido.appendChild(linha);
+                atualizarIndices();
+            });
+
+            itensPedido.addEventListener('click', event => {
+                const botaoRemover = event.target.closest('.remover-item');
+                if (botaoRemover && itensPedido.querySelectorAll('.item-pedido-row').length > 1) {
+                    botaoRemover.closest('.item-pedido-row').remove();
+                    atualizarIndices();
+                }
+            });
+
+            atualizarIndices();
+        })();
+
+        (async function carregarClientes() {
+            const seletor = document.getElementById('clienteId');
+            const mensagem = document.getElementById('clienteErro');
+            const selecionado = seletor.value;
+
+            try {
+                const resposta = await fetch('/api/clientes');
+                if (!resposta.ok) {
+                    throw new Error(`Falha ao consultar clientes (${resposta.status})`);
+                }
+
+                const clientes = await resposta.json();
+                seletor.replaceChildren(new Option(
+                    clientes.length ? 'Selecione um cliente' : 'Nenhum cliente cadastrado',
+                    ''
+                ));
+
+                clientes.forEach(cliente => {
+                    const contato = cliente.telefone ? ` - ${cliente.telefone}` : '';
+                    const opcao = new Option(`${cliente.nome}${contato}`, cliente.id);
+                    opcao.selected = cliente.id === selecionado;
+                    seletor.add(opcao);
+                });
+
+                mensagem.textContent = clientes.length
+                    ? ''
+                    : 'Cadastre um cliente antes de criar o pedido.';
+            } catch (erro) {
+                mensagem.textContent = 'Não foi possível carregar os clientes. Atualize a página ou confira sua permissão.';
+                console.error(erro);
+            }
+        })();
+    </script>
+</div>
+</body>
+</html>

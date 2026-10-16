@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Produtos</title>
+</head>
+<body>
+<div th:fragment="content">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold mb-0">
+            <i class="bi bi-boxes me-2 text-primary"></i>Produtos
+        </h2>
+        <a th:if="${canManageProducts}" th:href="@{/produtos/novo}" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-1"></i>Novo produto
+        </a>
+    </div>
+
+    <div class="alert alert-success alert-dismissible fade show" th:if="${sucesso}" role="alert">
+        <span th:text="${sucesso}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+    </div>
+    <div class="alert alert-danger alert-dismissible fade show" th:if="${erro}" role="alert">
+        <span th:text="${erro}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-dark">
+                    <tr>
+                        <th class="ps-4">Tipo</th>
+                        <th>Nome / sabor</th>
+                        <th>Preço</th>
+                        <th>Situação</th>
+                        <th th:if="${canManageProducts}" class="text-end pe-4">Ações</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:if="${#lists.isEmpty(produtos)}">
+                        <td th:attr="colspan=${canManageProducts ? 5 : 4}"
+                            class="text-center text-muted py-5">
+                            Nenhum produto cadastrado.
+                        </td>
+                    </tr>
+                    <tr th:each="produto : ${produtos}">
+                        <td class="ps-4" th:text="${produto.tipo}"></td>
+                        <td th:text="${produto.nome}"></td>
+                        <td th:text="${produto.preco != null ? 'R$ ' + #numbers.formatDecimal(produto.preco, 1, 'COMMA', 2, 'POINT') : '-'}"></td>
+                        <td>
+                            <span class="badge"
+                                  th:classappend="${produto.ativo == null or produto.ativo} ? 'bg-success' : 'bg-secondary'"
+                                  th:text="${produto.ativo == null or produto.ativo} ? 'Ativo' : 'Inativo'"></span>
+                        </td>
+                        <td th:if="${canManageProducts}" class="text-end pe-4">
+                            <a th:href="@{/produtos/editar/{id}(id=${produto.id})}"
+                               class="btn btn-sm btn-outline-primary">Editar</a>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="card-footer text-muted small" th:if="${!#lists.isEmpty(produtos)}">
+            Total: <strong th:text="${#lists.size(produtos)}"></strong> produto(s)
+        </div>
+    </div>
+</div>
+</body>
+</html>

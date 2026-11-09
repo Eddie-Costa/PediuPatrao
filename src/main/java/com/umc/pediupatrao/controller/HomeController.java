@@ -47,9 +47,22 @@ public class HomeController {
     @Autowired
     private AuditoriaService auditoriaService;
 
+    @ModelAttribute("canViewDashboard")
+    public boolean canViewDashboard(Authentication authentication) {
+        return authentication != null && authentication.getAuthorities().stream()
+                .anyMatch(authority -> "ROLE_ADMIN".equals(authority.getAuthority())
+                        || "ROLE_GERENTE".equals(authority.getAuthority()));
+    }
+
     @GetMapping("/login")
     public String login() {
         return "login";
+    }
+
+    @GetMapping("/dashboard")
+    public String dashboard(Model model) {
+        model.addAttribute("content", "dashboard :: content");
+        return "layout";
     }
 
     @GetMapping("/")

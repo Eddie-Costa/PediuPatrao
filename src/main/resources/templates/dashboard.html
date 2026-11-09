@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Dashboard</title>
+</head>
+<body>
+<div th:fragment="content">
+    <div id="dashboard" th:attr="data-api=@{/api/dashboard},data-login=@{/login}">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+            <h2 class="fw-bold mb-0">
+                <i class="bi bi-speedometer2 me-2 text-primary"></i>Dashboard
+            </h2>
+            <div class="d-flex flex-wrap align-items-center gap-3">
+                <span class="small text-secondary" id="dashboard-atualizado" aria-live="polite"></span>
+                <div class="form-check form-switch mb-0">
+                    <input class="form-check-input" type="checkbox" role="switch" id="dashboard-auto" checked>
+                    <label class="form-check-label small" for="dashboard-auto">Atualizar a cada 60 s</label>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-secondary" id="dashboard-atualizar">
+                    <i class="bi bi-arrow-clockwise me-1"></i>Atualizar
+                </button>
+            </div>
+        </div>
+
+        <div class="alert alert-danger d-none" role="alert" id="dashboard-erro"></div>
+        <div class="alert alert-warning d-none" role="status" id="dashboard-qualidade"></div>
+
+        <form class="card shadow-sm mb-3" id="dashboard-filtros">
+            <div class="card-body">
+                <div class="row g-2 align-items-end">
+                    <div class="col-6 col-lg-2">
+                        <label class="form-label small mb-1" for="filtro-inicio">Data inicial</label>
+                        <input class="form-control form-control-sm" type="date" id="filtro-inicio">
+                    </div>
+                    <div class="col-6 col-lg-2">
+                        <label class="form-label small mb-1" for="filtro-fim">Data final</label>
+                        <input class="form-control form-control-sm" type="date" id="filtro-fim">
+                    </div>
+                    <div class="col-12 col-sm-4 col-lg-2">
+                        <label class="form-label small mb-1" for="filtro-status">Status</label>
+                        <select class="form-select form-select-sm" id="filtro-status">
+                            <option value="">Todos</option>
+                        </select>
+                    </div>
+                    <div class="col-12 col-sm-4 col-lg-2">
+                        <label class="form-label small mb-1" for="filtro-tipo">Tipo de produto</label>
+                        <select class="form-select form-select-sm" id="filtro-tipo">
+                            <option value="">Todos</option>
+                        </select>
+                    </div>
+                    <div class="col-12 col-sm-4 col-lg-2">
+                        <label class="form-label small mb-1" for="filtro-produto">Produto</label>
+                        <select class="form-select form-select-sm" id="filtro-produto">
+                            <option value="">Todos</option>
+                        </select>
+                    </div>
+                    <div class="col-12 col-lg-2 d-flex gap-2">
+                        <button type="submit" class="btn btn-sm btn-primary flex-fill">Aplicar</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary flex-fill" id="filtro-limpar">Limpar</button>
+                    </div>
+                </div>
+                <div class="d-flex flex-wrap gap-2 mt-2">
+                    <button type="button" class="btn btn-sm btn-light border" data-dias="1">Hoje</button>
+                    <button type="button" class="btn btn-sm btn-light border" data-dias="7">7 dias</button>
+                    <button type="button" class="btn btn-sm btn-light border" data-dias="30">30 dias</button>
+                    <button type="button" class="btn btn-sm btn-light border" data-dias="90">90 dias</button>
+                </div>
+            </div>
+        </form>
+
+        <div class="dashboard-dados">
+            <div class="row row-cols-2 row-cols-lg-3 row-cols-xxl-6 g-3 mb-3" id="dashboard-indicadores"></div>
+
+            <div class="row g-3 mb-3">
+                <div class="col-12 col-xl-8">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-body">
+                            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+                                <h3 class="h6 fw-bold mb-0">Evolução do faturamento</h3>
+                                <select class="form-select form-select-sm w-auto" id="vendas-agrupamento" aria-label="Agrupamento do gráfico de faturamento"></select>
+                            </div>
+                            <div class="dashboard-grafico"><canvas id="grafico-vendas" role="img" aria-label="Linha com o faturamento ao longo do período"></canvas></div>
+                            <div class="dashboard-vazio d-none" id="vendas-vazio">Nenhuma venda encontrada para os filtros selecionados.</div>
+                            <details class="mt-2">
+                                <summary class="small text-secondary">Ver dados em tabela</summary>
+                                <div class="dashboard-tabela-dados mt-2">
+                                    <table class="table table-sm mb-0 dashboard-numeros">
+                                        <thead><tr><th>Período</th><th class="text-end">Faturamento</th><th class="text-end">Pedidos</th><th class="text-end">Ticket médio</th></tr></thead>
+                                        <tbody id="vendas-tabela"></tbody>
+                                    </table>
+                                </div>
+                            </details>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-xl-4">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-body">
+                            <h3 class="h6 fw-bold mb-3">Situação dos pedidos</h3>
+                            <div id="pedidos-status"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-3 mb-3">
+                <div class="col-12 col-xl-8">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-body">
+                            <h3 class="h6 fw-bold mb-2">Pedidos por horário</h3>
+                            <div class="dashboard-grafico"><canvas id="grafico-horario" role="img" aria-label="Colunas com a quantidade de pedidos por hora do dia"></canvas></div>
+                            <div class="dashboard-vazio d-none" id="horario-vazio">Nenhum pedido encontrado para os filtros selecionados.</div>
+                            <details class="mt-2">
+                                <summary class="small text-secondary">Ver dados em tabela</summary>
+                                <div class="dashboard-tabela-dados mt-2">
+                                    <table class="table table-sm mb-0 dashboard-numeros">
+                                        <thead><tr><th>Horário</th><th class="text-end">Pedidos</th><th class="text-end">Faturamento</th></tr></thead>
+                                        <tbody id="horario-tabela"></tbody>
+                                    </table>
+                                </div>
+                            </details>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-xl-4">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-body">
+                            <h3 class="h6 fw-bold mb-3">Faturamento por tipo de produto</h3>
+                            <div id="vendas-tipo"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow-sm mb-3">
+                <div class="card-body">
+                    <h3 class="h6 fw-bold mb-3">Produtos mais vendidos</h3>
+                    <div class="table-responsive">
+                        <table class="table table-sm align-middle mb-0">
+                            <thead>
+                                <tr><th>#</th><th>Produto</th><th>Tipo</th><th class="text-end">Quantidade</th><th class="text-end">Faturamento</th><th style="width: 25%">Participação</th></tr>
+                            </thead>
+                            <tbody id="produtos-ranking"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                        <h3 class="h6 fw-bold mb-0">Pedidos do período</h3>
+                        <span class="small text-secondary" id="pedidos-total"></span>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover align-middle mb-0">
+                            <thead>
+                                <tr><th>Recebido em</th><th>Pedido</th><th>Produtos</th><th>Status</th><th class="text-end">Desconto</th><th class="text-end">Valor</th></tr>
+                            </thead>
+                            <tbody id="pedidos-lista"></tbody>
+                        </table>
+                    </div>
+                    <div class="d-flex justify-content-end align-items-center gap-2 mt-3">
+                        <button type="button" class="btn btn-sm btn-outline-secondary" id="pedidos-anterior">Anterior</button>
+                        <span class="small" id="pedidos-pagina"></span>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" id="pedidos-proxima">Próxima</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script th:src="@{/plugins/chart.js/Chart.min.js}"></script>
+    <script th:src="@{/js/dashboard.js}"></script>
+</div>
+</body>
+</html>

@@ -66,7 +66,7 @@ public class SecurityConfig {
                         .requestMatchers("/usuarios/**", "/api/usuarios/**").hasRole("ADMIN")
                         .requestMatchers("/auditoria", "/auditoria/**", "/api/auditoria", "/api/auditoria/**")
                             .hasAnyRole("ADMIN", "GERENTE")
-                        .requestMatchers("/api/dashboard/**")
+                        .requestMatchers("/dashboard", "/api/dashboard/**")
                             .hasAnyRole("ADMIN", "GERENTE")
                         .requestMatchers("/produtos/novo", "/produtos/editar/**")
                             .hasAnyRole("ADMIN", "GERENTE")

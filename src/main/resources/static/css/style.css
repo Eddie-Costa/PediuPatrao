@@ -37,6 +37,92 @@ body {
     padding: 20px;
 }
 
+aside {
+    background-color: #343a40;
+}
+
+main {
+    min-width: 0;
+}
+
+#dashboard {
+    transition: opacity 0.15s;
+}
+
+#dashboard.atualizando .dashboard-dados {
+    opacity: 0.6;
+}
+
+.dashboard-indicador-rotulo {
+    font-size: 0.85rem;
+    color: #52514e;
+}
+
+.dashboard-indicador-valor {
+    font-size: 1.6rem;
+    font-weight: 600;
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+}
+
+.dashboard-indicador-detalhe {
+    font-size: 0.8rem;
+    color: #52514e;
+}
+
+.dashboard-delta-alta {
+    color: #006300;
+}
+
+.dashboard-delta-queda {
+    color: #d03b3b;
+}
+
+.dashboard-grafico {
+    position: relative;
+    height: 300px;
+}
+
+.dashboard-vazio {
+    color: #52514e;
+    text-align: center;
+    padding: 2rem 0;
+}
+
+.dashboard-barra-linha {
+    margin-bottom: 0.75rem;
+}
+
+.dashboard-barra-texto {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    font-size: 0.9rem;
+}
+
+.dashboard-barra-trilha {
+    height: 8px;
+    margin-top: 0.25rem;
+    background-color: #e1e0d9;
+    border-radius: 4px;
+}
+
+.dashboard-barra-preenchimento {
+    height: 100%;
+    min-width: 2px;
+    background-color: #2a78d6;
+    border-radius: 4px;
+}
+
+.dashboard-numeros {
+    font-variant-numeric: tabular-nums;
+}
+
+.dashboard-tabela-dados {
+    max-height: 240px;
+    overflow-y: auto;
+}
+
 @media (max-width: 768px) {
     #sidebar {
         position: fixed;
@@ -53,6 +139,10 @@ body {
 
     #content {
         margin-left: 0;
+    }
+
+    #dashboard h2 {
+        margin-left: 3rem;
     }
 
     .toggle-btn {

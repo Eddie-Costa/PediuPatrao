@@ -13,7 +13,7 @@ Aplicação web para cadastro de clientes e produtos e gerenciamento de pedidos 
 
 ## Requisitos para executar
 
-- JDK 21 ou compatível com a versão configurada no projeto.
+- JDK 21.
 - MongoDB local ou uma instância MongoDB acessível pela aplicação.
 - PowerShell no Windows, ou terminal equivalente para outros sistemas.
 
@@ -33,9 +33,37 @@ Na pasta raiz do projeto:
 .\mvnw.cmd spring-boot:run
 ```
 
-Acesse [http://localhost:8080](http://localhost:8080). O inicializador cria um usuário `admin` com perfil ADMIN caso ainda não exista; a senha de desenvolvimento está definida em [`DataInitializer.java`](src/main/java/com/umc/pediupatrao/config/DataInitializer.java). Essa conta é apenas para desenvolvimento e demonstração: altere a credencial antes de qualquer uso fora de ambiente local.
+Acesse [http://localhost:8080](http://localhost:8080). O inicializador cria um usuário `admin` com perfil ADMIN caso ainda não exista, desde que a variável `APP_ADMIN_INITIAL_PASSWORD` esteja definida antes de iniciar:
+
+```powershell
+$env:APP_ADMIN_INITIAL_PASSWORD = "defina-uma-senha"
+```
+
+Essa conta é apenas para desenvolvimento e demonstração.
 
 Com a conta ADMIN, cadastre usuários para os perfis GERENTE e ATENDENTE. Em seguida, cadastre produtos e clientes para testar a criação dos pedidos.
+
+## Dashboard Administrativo
+
+O painel fica em [http://localhost:8080/dashboard](http://localhost:8080/dashboard), disponível para os perfis ADMIN e GERENTE, e consome a API em `/api/dashboard`.
+
+Para carregar dados de demonstração, inicie a aplicação uma vez com o perfil `carga-demo`:
+
+```powershell
+.\mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=carga-demo"
+```
+
+A carga insere produtos, clientes e cerca de 120 dias de pedidos, sem apagar dados existentes. Os pedidos criados têm `recebidoPor` igual a `carga-demo`, e novas execuções não duplicam os dados.
+
+Documentação da entrega:
+
+- [Requisitos e decisões de projeto](docs/requisitos.md)
+- [Documentação da API](docs/api-dashboard.md)
+- [Evidências de testes](docs/evidencias-testes.md)
+- [Roteiro do vídeo](docs/roteiro-video.md)
+- Vídeo de apresentação: link a ser adicionado
+
+A implementação segue o modelo gitflow, com a branch `develop` e a branch `feature/api-dashboard`.
 
 ## Testes automatizados
 

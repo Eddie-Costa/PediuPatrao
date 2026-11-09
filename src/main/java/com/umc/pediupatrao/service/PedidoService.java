@@ -15,6 +15,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
@@ -79,6 +80,23 @@ public class PedidoService {
         List<Pedido> pedidos = pedidoRepository.findAll();
         pedidos.forEach(this::garantirItensLegados);
         return pedidos;
+    }
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'GERENTE')")
+    public List<Pedido> listarPedidosPorPeriodo(Instant inicio, Instant fimExclusivo) {
+        List<Pedido> pedidos = pedidoRepository.buscarRecebidosNoPeriodo(
+                inicio, fimExclusivo, Sort.by(Sort.Direction.DESC, "recebidoEm"));
+        pedidos.forEach(pedido -> {
+            garantirItensLegados(pedido);
+            pedido.setStatus(pedido.getStatus() == null || pedido.getStatus().isBlank()
+                    ? null : normalizarStatus(pedido.getStatus()));
+        });
+        return pedidos;
+    }
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'GERENTE')")
+    public long contarPedidosSemData() {
+        return pedidoRepository.countByRecebidoEmIsNull();
     }
 
     // A edição altera apenas os dados do pedido; status segue o fluxo validado abaixo.
@@ -380,7 +398,7 @@ public class PedidoService {
         }
     }
 
-    private String normalizarStatus(String status) {
+    public String normalizarStatus(String status) {
         if (status == null || status.isBlank()) {
             throw new IllegalArgumentException("O status do pedido é obrigatório.");
         }

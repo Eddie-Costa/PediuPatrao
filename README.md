@@ -57,11 +57,11 @@ A carga insere produtos, clientes e cerca de 120 dias de pedidos, sem apagar dad
 
 Documentação da entrega:
 
-- [Requisitos e decisões de projeto](docs/requisitos.md)
-- [Documentação da API](docs/api-dashboard.md)
-- [Evidências de testes](docs/evidencias-testes.md)
-- [Roteiro do vídeo](docs/roteiro-video.md)
-- Vídeo de apresentação: link a ser adicionado
+- [Requisitos e decisões de projeto](docs/requisitos/requisitos.md)
+- [Documentação da API](docs/api/api-dashboard.md)
+- [Evidências de testes](docs/testes/evidencias-testes.md)
+- [Vídeo de apresentação](docs/apresentacao/PediuPatrao_Dashboard_Editado_v2.mp4)
+- [Roteiro do vídeo](docs/apresentacao/roteiro-video.md)
 
 A implementação segue o modelo gitflow, com a branch `develop` e a branch `feature/api-dashboard`.
 

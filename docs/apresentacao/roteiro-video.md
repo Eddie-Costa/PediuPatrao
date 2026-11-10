@@ -10,8 +10,8 @@ Duração-alvo: 2min50s. O limite da atividade é de 3 minutos.
 4. Deixe abertas, nesta ordem, as abas:
    - `http://localhost:8080/dashboard`
    - `http://localhost:8080/api/dashboard/resumo`
-   - `docs/requisitos.md` no GitHub, na seção "Principais decisões de projeto"
-   - `docs/evidencias-testes.md` no GitHub, na tabela "Resumo"
+   - `docs/requisitos/requisitos.md` no GitHub, na seção "Principais decisões de projeto"
+   - `docs/testes/evidencias-testes.md` no GitHub, na tabela "Resumo"
 5. Use o navegador em tela cheia, com zoom de 90%, e silencie as notificações.
 6. Se gravar depois de 09/11/2026, informe 09/11/2026 como data final e use o início 30 dias antes, para o gráfico não terminar em dias sem dados de demonstração.
 7. Faça um ensaio cronometrado. Para gravar, use `Win + Alt + R`, da Xbox Game Bar do Windows, ou o OBS Studio.

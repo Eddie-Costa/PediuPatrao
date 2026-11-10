@@ -1,9 +1,16 @@
 package com.umc.pediupatrao.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.umc.pediupatrao.dto.ErroApi;
 import com.umc.pediupatrao.service.UsuarioDetailsService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -15,12 +22,16 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.security.config.Customizer;
 
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
+
+    private static final RequestMatcher API_DASHBOARD = new AntPathRequestMatcher("/api/dashboard/**");
 
     private final UsuarioDetailsService usuarioDetailsService;
 
@@ -47,13 +58,15 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, ObjectMapper objectMapper) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/login", "/css/**", "/js/**", "/images/**").permitAll()
                         .requestMatchers("/admin").hasRole("ADMIN")
                         .requestMatchers("/usuarios/**", "/api/usuarios/**").hasRole("ADMIN")
                         .requestMatchers("/auditoria", "/auditoria/**", "/api/auditoria", "/api/auditoria/**")
+                            .hasAnyRole("ADMIN", "GERENTE")
+                        .requestMatchers("/dashboard", "/api/dashboard/**")
                             .hasAnyRole("ADMIN", "GERENTE")
                         .requestMatchers("/produtos/novo", "/produtos/editar/**")
                             .hasAnyRole("ADMIN", "GERENTE")
@@ -109,6 +122,16 @@ public class SecurityConfig {
                             .hasAnyRole("ADMIN", "GERENTE")
                         .anyRequest().authenticated()
                 )
+                .exceptionHandling(erros -> erros
+                        .defaultAuthenticationEntryPointFor(
+                                (request, response, excecao) -> escreverErroJson(objectMapper, request, response,
+                                        HttpStatus.UNAUTHORIZED, "Autenticação necessária para acessar o dashboard."),
+                                API_DASHBOARD)
+                        .defaultAccessDeniedHandlerFor(
+                                (request, response, excecao) -> escreverErroJson(objectMapper, request, response,
+                                        HttpStatus.FORBIDDEN, "Seu perfil não tem permissão para acessar o dashboard."),
+                                API_DASHBOARD)
+                )
                 .formLogin(form -> form
                         .loginPage("/login")
                         .permitAll()
@@ -122,6 +145,14 @@ public class SecurityConfig {
                 );
 
         return http.build();
+    }
+
+    private void escreverErroJson(ObjectMapper objectMapper, HttpServletRequest request,
+            HttpServletResponse response, HttpStatus status, String mensagem) throws IOException {
+        response.setStatus(status.value());
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        response.setCharacterEncoding("UTF-8");
+        objectMapper.writeValue(response.getWriter(), ErroApi.de(status, mensagem, request.getRequestURI()));
     }
 
     @Bean
